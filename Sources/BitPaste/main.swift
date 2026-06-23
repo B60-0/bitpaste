@@ -1,9 +1,11 @@
 import AppKit
 import ApplicationServices
 import Carbon
+import Darwin
 import Foundation
 
 private let appName = "BitPaste"
+private let bundleIdentifier = "app.bitpaste"
 private let appSignature = makeOSType("BPST")
 private let logLock = NSLock()
 
@@ -422,6 +424,20 @@ private func defaultConfigPath() -> String {
     return "\(home)/.config/bitpaste/config.json"
 }
 
+private func defaultConfigJSON(from config: AppConfig) -> String {
+    """
+    {
+      "chunkSize": \(config.chunkSize),
+      "delayMs": \(config.delayMs),
+      "initialDelayMs": \(config.initialDelayMs),
+      "waitForShortcutReleaseMs": \(config.waitForShortcutReleaseMs),
+      "hotkey": "\(config.hotkey)",
+      "restoreClipboard": \(config.restoreClipboard ? "true" : "false")
+    }
+
+    """
+}
+
 private func expandedPath(_ path: String) -> String {
     (path as NSString).expandingTildeInPath
 }
@@ -433,6 +449,21 @@ private func loadConfig(from path: String) throws -> FileConfig? {
 
     let data = try Data(contentsOf: URL(fileURLWithPath: path))
     return try JSONDecoder().decode(FileConfig.self, from: data)
+}
+
+private func ensureConfigFileExists(_ config: AppConfig) {
+    guard !FileManager.default.fileExists(atPath: config.configPath) else {
+        return
+    }
+
+    do {
+        let url = URL(fileURLWithPath: config.configPath)
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try defaultConfigJSON(from: config).write(to: url, atomically: true, encoding: .utf8)
+        log("Created default config at \(config.configPath).")
+    } catch {
+        log("Could not create config at \(config.configPath): \(error)")
+    }
 }
 
 private func requestedConfigPath(from args: [String]) throws -> String? {
@@ -516,6 +547,79 @@ private func requestAccessibilityPermission(prompt: Bool) -> Bool {
     return AXIsProcessTrustedWithOptions(options)
 }
 
+private func ensureLoginAgentForCurrentApp() {
+    let bundleURL = Bundle.main.bundleURL
+    guard bundleURL.pathExtension == "app" else {
+        return
+    }
+
+    let appPath = bundleURL.path
+    let homeApplications = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Applications", isDirectory: true)
+        .path
+
+    guard appPath.hasPrefix("/Applications/") || appPath.hasPrefix(homeApplications + "/") else {
+        log("Drag BitPaste.app to Applications, then open it once to install the login item.")
+        return
+    }
+
+    let launchAgentsURL = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Library/LaunchAgents", isDirectory: true)
+    let plistURL = launchAgentsURL.appendingPathComponent("\(bundleIdentifier).plist")
+    let logDirectory = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Library/Logs/BitPaste", isDirectory: true)
+
+    let plist = """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+      "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+      <key>Label</key>
+      <string>\(bundleIdentifier)</string>
+      <key>ProgramArguments</key>
+      <array>
+        <string>/usr/bin/open</string>
+        <string>-gj</string>
+        <string>\(xmlEscaped(appPath))</string>
+      </array>
+      <key>RunAtLoad</key>
+      <true/>
+      <key>StandardOutPath</key>
+      <string>\(xmlEscaped(logDirectory.appendingPathComponent("bitpaste.log").path))</string>
+      <key>StandardErrorPath</key>
+      <string>\(xmlEscaped(logDirectory.appendingPathComponent("bitpaste.err.log").path))</string>
+      <key>ProcessType</key>
+      <string>Interactive</string>
+    </dict>
+    </plist>
+
+    """
+
+    do {
+        try FileManager.default.createDirectory(at: launchAgentsURL, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: logDirectory, withIntermediateDirectories: true)
+
+        let existing = try? String(contentsOf: plistURL, encoding: .utf8)
+        let launchAgentIsLoaded = processExitCode("/bin/launchctl", ["print", "gui/\(getuid())/\(bundleIdentifier)"]) == 0
+
+        guard existing != plist || !launchAgentIsLoaded else {
+            return
+        }
+
+        try plist.write(to: plistURL, atomically: true, encoding: .utf8)
+        _ = processExitCode("/bin/launchctl", ["bootout", "gui/\(getuid())", plistURL.path])
+        let status = processExitCode("/bin/launchctl", ["bootstrap", "gui/\(getuid())", plistURL.path])
+        if status == 0 {
+            log("Installed login item at \(plistURL.path).")
+        } else {
+            log("Could not bootstrap login item at \(plistURL.path) (exit \(status)).")
+        }
+    } catch {
+        log("Could not install login item: \(error)")
+    }
+}
+
 private func split(_ text: String, maxCharacters: Int) -> [String] {
     var chunks: [String] = []
     var start = text.startIndex
@@ -534,6 +638,31 @@ private func sleep(milliseconds: Int) {
         return
     }
     Thread.sleep(forTimeInterval: Double(milliseconds) / 1_000.0)
+}
+
+private func xmlEscaped(_ value: String) -> String {
+    value
+        .replacingOccurrences(of: "&", with: "&amp;")
+        .replacingOccurrences(of: "\"", with: "&quot;")
+        .replacingOccurrences(of: "'", with: "&apos;")
+        .replacingOccurrences(of: "<", with: "&lt;")
+        .replacingOccurrences(of: ">", with: "&gt;")
+}
+
+private func processExitCode(_ executable: String, _ arguments: [String]) -> Int32 {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: executable)
+    process.arguments = arguments
+    process.standardOutput = FileHandle.nullDevice
+    process.standardError = FileHandle.nullDevice
+
+    do {
+        try process.run()
+        process.waitUntilExit()
+        return process.terminationStatus
+    } catch {
+        return 127
+    }
 }
 
 private func log(_ message: String) {
@@ -631,6 +760,9 @@ private func run() throws {
             exit(2)
         }
     case .run:
+        ensureConfigFileExists(config)
+        ensureLoginAgentForCurrentApp()
+
         let hotkey = try Hotkey.parse(config.hotkey)
         let controller = PasteController(config: config, hotkey: hotkey)
         let monitor = HotkeyMonitor(hotkey: hotkey) {

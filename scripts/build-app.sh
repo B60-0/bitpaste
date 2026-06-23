@@ -2,7 +2,7 @@
 set -euo pipefail
 
 LABEL="app.bitpaste"
-VERSION="${BITPASTE_VERSION:-0.1.0}"
+VERSION="${BITPASTE_VERSION:-0.1.1}"
 BUILD="${BITPASTE_BUILD:-1}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_DIR="${1:-$ROOT/dist/BitPaste.app}"
@@ -10,14 +10,17 @@ CONTENTS="$APP_DIR/Contents"
 MACOS="$CONTENTS/MacOS"
 RESOURCES="$CONTENTS/Resources"
 BIN="$MACOS/bitpaste"
+ICON="$ROOT/dist/BitPaste.icns"
 
 cd "$ROOT"
 swift build -c release
+"$ROOT/scripts/generate-icon.sh" "$ICON" >/dev/null
 
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS" "$RESOURCES"
 cp "$ROOT/.build/release/bitpaste" "$BIN"
 cp "$ROOT/assets/bitpaste-logo.svg" "$RESOURCES/bitpaste-logo.svg"
+cp "$ICON" "$RESOURCES/BitPaste.icns"
 chmod +x "$BIN"
 
 cat > "$CONTENTS/Info.plist" <<PLIST
@@ -35,6 +38,8 @@ cat > "$CONTENTS/Info.plist" <<PLIST
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>
+  <string>BitPaste</string>
+  <key>CFBundleIconFile</key>
   <string>BitPaste</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>

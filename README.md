@@ -28,7 +28,9 @@ macOS still requires one manual permission step: enable `BitPaste.app` in `Syste
 
 ## Download
 
-You can also download `BitPaste.dmg` from the [latest release](https://github.com/B60-0/bitpaste/releases/latest), open it, and run `Install BitPaste.command`.
+You can also download `BitPaste.dmg` from the [latest release](https://github.com/B60-0/bitpaste/releases/latest).
+
+Open the DMG, drag `BitPaste.app` into `Applications`, then open BitPaste once. BitPaste will create its config file, install its login item, and open the Accessibility settings pane.
 
 ## Configure
 

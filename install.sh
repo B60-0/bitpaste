@@ -22,4 +22,17 @@ echo "Mounting installer..."
 hdiutil attach "$DMG" -mountpoint "$MOUNT" -nobrowse -quiet
 
 echo "Installing BitPaste..."
-bash "$MOUNT/Install BitPaste.command"
+APP_DIR="$HOME/Applications/BitPaste.app"
+pkill -f "$APP_DIR/Contents/MacOS/bitpaste" >/dev/null 2>&1 || true
+mkdir -p "$HOME/Applications"
+rm -rf "$APP_DIR"
+ditto "$MOUNT/BitPaste.app" "$APP_DIR"
+chmod +x "$APP_DIR/Contents/MacOS/bitpaste"
+xattr -dr com.apple.quarantine "$APP_DIR" >/dev/null 2>&1 || true
+open -gj "$APP_DIR"
+open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" >/dev/null 2>&1 || true
+
+echo "BitPaste installed."
+echo "Shortcut: command+option+shift+v"
+echo "App: $APP_DIR"
+echo "One final macOS step: enable BitPaste.app in Privacy & Security > Accessibility."
