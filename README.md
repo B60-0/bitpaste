@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/bitpaste-logo.svg" alt="BitPaste logo reading Cmnd plus V" width="360">
+  <img src="assets/bitpaste-logo.svg" alt="BitPaste logo reading Cmd plus V" width="360">
 </p>
 
 # BitPaste

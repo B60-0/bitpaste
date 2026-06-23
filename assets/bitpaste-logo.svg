@@ -1,6 +1,6 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">BitPaste logo</title>
-  <desc id="desc">The text Cmnd plus V on a plain white background.</desc>
+  <desc id="desc">The text Cmd plus V on a plain white background.</desc>
   <rect width="1200" height="630" fill="white"/>
   <text
     x="600"
@@ -11,5 +11,5 @@
     font-size="156"
     font-weight="700"
     letter-spacing="0"
-    fill="#111111">Cmnd + V</text>
+    fill="#111111">Cmd + V</text>
 </svg>
