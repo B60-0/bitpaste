@@ -1,0 +1,16 @@
+<svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">BitPaste logo</title>
+  <desc id="desc">A rounded clipboard with small text chunks flowing into it.</desc>
+  <rect width="640" height="640" rx="112" fill="#102331"/>
+  <path d="M230 110H410C430.987 110 448 127.013 448 148V178H192V148C192 127.013 209.013 110 230 110Z" fill="#8BE9D4"/>
+  <path d="M190 158H450C489.765 158 522 190.235 522 230V458C522 497.765 489.765 530 450 530H190C150.235 530 118 497.765 118 458V230C118 190.235 150.235 158 190 158Z" fill="#F7FAF8"/>
+  <path d="M190 158H450C489.765 158 522 190.235 522 230V458C522 497.765 489.765 530 450 530H190C150.235 530 118 497.765 118 458V230C118 190.235 150.235 158 190 158Z" stroke="#0A151E" stroke-width="24"/>
+  <path d="M204 230H436" stroke="#102331" stroke-width="30" stroke-linecap="round"/>
+  <path d="M204 304H376" stroke="#2E7CFF" stroke-width="30" stroke-linecap="round"/>
+  <path d="M204 378H436" stroke="#102331" stroke-width="30" stroke-linecap="round"/>
+  <path d="M204 452H314" stroke="#8BE9D4" stroke-width="30" stroke-linecap="round"/>
+  <path d="M78 260H154" stroke="#8BE9D4" stroke-width="28" stroke-linecap="round"/>
+  <path d="M66 334H154" stroke="#2E7CFF" stroke-width="28" stroke-linecap="round"/>
+  <path d="M94 408H154" stroke="#F7FAF8" stroke-width="28" stroke-linecap="round"/>
+  <path d="M426 422L486 456L426 490V422Z" fill="#FFCA4A"/>
+</svg>

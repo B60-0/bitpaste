@@ -1,0 +1,8 @@
+{
+  "chunkSize": 1200,
+  "delayMs": 75,
+  "initialDelayMs": 120,
+  "waitForShortcutReleaseMs": 1000,
+  "hotkey": "command+option+shift+v",
+  "restoreClipboard": true
+}
