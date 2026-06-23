@@ -1,10 +1,16 @@
-.PHONY: build run install uninstall check-permissions print-config clean
+.PHONY: build app dmg run install uninstall check-permissions print-config clean
 
 build:
 	swift build -c release
 
+app:
+	./scripts/build-app.sh
+
 run:
 	swift run bitpaste
+
+dmg:
+	./scripts/package-dmg.sh
 
 install:
 	./scripts/install.sh

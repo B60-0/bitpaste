@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="assets/bitpaste-logo.svg" alt="BitPaste logo" width="120">
+  <img src="assets/bitpaste-logo.svg" alt="BitPaste logo reading Cmnd plus V" width="360">
 </p>
 
 # BitPaste
 
-BitPaste is a tiny macOS utility for the annoying kind of paste.
+BitPaste is a tiny macOS helper for pasting long prompts into Codex.
 
-Some apps handle huge clipboard text badly. They freeze, miss characters, or decide the text should become an attachment. BitPaste takes whatever text is on your clipboard and pastes it in smaller pieces, using one keyboard shortcut.
+When a prompt is big enough, Codex can treat the paste like a file attachment. The usual workaround is painful: paste the prompt into another editor, copy a smaller piece, paste that into Codex, then repeat until the whole thing is in. BitPaste automates that loop. Copy the full prompt once, focus Codex, press the shortcut, and BitPaste feeds the clipboard into Codex in smaller paste chunks.
 
 Default shortcut:
 
@@ -14,43 +14,21 @@ Default shortcut:
 command+option+shift+v
 ```
 
-That shortcut reads your clipboard, splits the text into chunks, pastes each chunk with `command+v`, and then restores your original clipboard.
-
 ## Install
 
+Run this one command:
+
 ```sh
-make install
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/B60-0/bitpaste/main/install.sh)"
 ```
 
-The installer builds BitPaste, places the app here:
+That downloads the latest BitPaste DMG, installs `BitPaste.app` into `~/Applications`, starts it at login, and opens the macOS Accessibility settings pane.
 
-```text
-~/Applications/BitPaste.app
-```
+macOS still requires one manual permission step: enable `BitPaste.app` in `System Settings > Privacy & Security > Accessibility`.
 
-and starts it at login with this LaunchAgent:
+## Download
 
-```text
-~/Library/LaunchAgents/app.bitpaste.plist
-```
-
-## Permission
-
-BitPaste needs macOS Accessibility permission so it can send paste keystrokes.
-
-Open:
-
-```text
-System Settings > Privacy & Security > Accessibility
-```
-
-Then add and enable:
-
-```text
-~/Applications/BitPaste.app
-```
-
-If you previously installed an older local build, remove any stale BitPaste entry from that list and add the app again.
+You can also download `BitPaste.dmg` from the [latest release](https://github.com/B60-0/bitpaste/releases/latest), open it, and run `Install BitPaste.command`.
 
 ## Configure
 
@@ -73,7 +51,7 @@ Default config:
 }
 ```
 
-If an app drops chunks or pastes them out of order, increase `delayMs` to `100` or `150`. If the receiving app can handle more text at once, increase `chunkSize`.
+If Codex drops chunks or receives them out of order, increase `delayMs` to `100` or `150`.
 
 Supported hotkey keys are letters, digits, `space`, `tab`, `return`, and `escape`. Supported modifiers are `command`, `control`, `option`, and `shift`.
 
@@ -81,6 +59,18 @@ After changing config, restart BitPaste:
 
 ```sh
 launchctl kickstart -k gui/$UID/app.bitpaste
+```
+
+## Build From Source
+
+```sh
+make install
+```
+
+To build the release DMG:
+
+```sh
+make dmg
 ```
 
 ## Uninstall
