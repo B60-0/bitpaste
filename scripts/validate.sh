@@ -44,8 +44,8 @@ assert_symlink() {
 
 echo "== Build CLI =="
 swift build -c release >/dev/null
-".build/release/bitpaste" --config "$TMP_DIR/no-config.json" --print-config | rg '"hotkey" : "command\+option\+shift\+v"' >/dev/null
-".build/release/bitpaste" --help | rg 'command\+option\+shift\+v' >/dev/null
+".build/release/bitpaste" --config "$TMP_DIR/no-config.json" --print-config | grep -F '"hotkey" : "command+option+shift+v"' >/dev/null
+".build/release/bitpaste" --help | grep -F 'command+option+shift+v' >/dev/null
 
 echo "== Build DMG =="
 "$ROOT/scripts/package-dmg.sh" >/dev/null
@@ -62,14 +62,24 @@ assert_executable "$MOUNT/BitPaste.app/Contents/MacOS/bitpaste"
 assert_file "$MOUNT/BitPaste.app/Contents/Resources/BitPaste.icns"
 assert_file "$MOUNT/BitPaste.app/Contents/Resources/bitpaste-logo.svg"
 
-plutil -extract CFBundleIdentifier raw "$MOUNT/BitPaste.app/Contents/Info.plist" | rg '^app\.bitpaste$' >/dev/null
-plutil -extract CFBundleShortVersionString raw "$MOUNT/BitPaste.app/Contents/Info.plist" | rg '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null
-plutil -extract CFBundleIconFile raw "$MOUNT/BitPaste.app/Contents/Info.plist" | rg '^BitPaste$' >/dev/null
-plutil -extract LSUIElement raw "$MOUNT/BitPaste.app/Contents/Info.plist" | rg '^true$' >/dev/null
-"$MOUNT/BitPaste.app/Contents/MacOS/bitpaste" --config "$TMP_DIR/no-config.json" --print-config | rg '"hotkey" : "command\+option\+shift\+v"' >/dev/null
+plutil -extract CFBundleIdentifier raw "$MOUNT/BitPaste.app/Contents/Info.plist" | grep -E '^app\.bitpaste$' >/dev/null
+plutil -extract CFBundleShortVersionString raw "$MOUNT/BitPaste.app/Contents/Info.plist" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null
+plutil -extract CFBundleIconFile raw "$MOUNT/BitPaste.app/Contents/Info.plist" | grep -E '^BitPaste$' >/dev/null
+plutil -extract LSUIElement raw "$MOUNT/BitPaste.app/Contents/Info.plist" | grep -E '^true$' >/dev/null
+"$MOUNT/BitPaste.app/Contents/MacOS/bitpaste" --config "$TMP_DIR/no-config.json" --print-config | grep -F '"hotkey" : "command+option+shift+v"' >/dev/null
 
 echo "== Scan tracked files =="
-git -C "$ROOT" ls-files -z | xargs -0 rg -n '/Users/|innovation-2|Documents|com\.codex|app\.codex|gho_|Library/Application Support/BitPaste' -S && {
+privacy_patterns=(
+  "/Use""rs/"
+  "innovation""-2"
+  "Docu""ments"
+  "com[.]cod""ex"
+  "app[.]cod""ex"
+  "gh""o_"
+  "Library/Application Support/""BitPaste"
+)
+privacy_pattern="$(IFS='|'; echo "${privacy_patterns[*]}")"
+git -C "$ROOT" ls-files -z | xargs -0 grep -nE "$privacy_pattern" && {
   echo "tracked-file privacy scan failed" >&2
   exit 1
 } || true
@@ -84,7 +94,7 @@ if [[ "${BITPASTE_VALIDATE_RELEASE:-0}" == "1" ]]; then
   assert_dir "$RELEASE_MOUNT/BitPaste.app"
   assert_symlink "$RELEASE_MOUNT/Applications"
   assert_executable "$RELEASE_MOUNT/BitPaste.app/Contents/MacOS/bitpaste"
-  plutil -extract CFBundleIdentifier raw "$RELEASE_MOUNT/BitPaste.app/Contents/Info.plist" | rg '^app\.bitpaste$' >/dev/null
+  plutil -extract CFBundleIdentifier raw "$RELEASE_MOUNT/BitPaste.app/Contents/Info.plist" | grep -E '^app\.bitpaste$' >/dev/null
   hdiutil detach "$RELEASE_MOUNT" -quiet >/dev/null 2>&1 || hdiutil detach "$RELEASE_MOUNT" -force -quiet >/dev/null 2>&1 || true
 fi
 
