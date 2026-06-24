@@ -75,6 +75,12 @@ To build the release DMG:
 make dmg
 ```
 
+To run the packaging checks:
+
+```sh
+make validate
+```
+
 ## Uninstall
 
 ```sh

@@ -1,4 +1,4 @@
-.PHONY: build app dmg run install uninstall check-permissions print-config clean
+.PHONY: build app dmg validate run install uninstall check-permissions print-config clean
 
 build:
 	swift build -c release
@@ -11,6 +11,9 @@ run:
 
 dmg:
 	./scripts/package-dmg.sh
+
+validate:
+	./scripts/validate.sh
 
 install:
 	./scripts/install.sh
